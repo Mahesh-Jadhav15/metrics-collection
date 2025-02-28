@@ -1,0 +1,25 @@
+---
+- name: Deploy CPU and Memory Metrics Collector
+  hosts: remote_vm
+  become: yes  # Run tasks with sudo privileges
+  tasks:
+    - name: Copy the metrics collection script to the remote VM
+      copy:
+        src: collect_metrics.sh
+        dest: /usr/local/bin/collect_metrics.sh
+        mode: '0755'  # Make the script executable
+
+    - name: Ensure the log file exists
+      file:
+        path: /var/log/system_metrics.log
+        state: touch  # Create the file if it doesn't exist
+        owner: root
+        group: root
+        mode: '0644'  # Set appropriate permissions
+
+    - name: Schedule the script to run every minute using cron
+      cron:
+        name: "Collect CPU and Memory Metrics"
+        minute: "*"
+        job: "/usr/local/bin/collect_metrics.sh"
+        user: root
